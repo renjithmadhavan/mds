@@ -1,0 +1,114 @@
+---
+title: "week1_caravan_insurance_cx_profiling_r"
+author: "Renjith Madhavan"
+date: "1/30/2017"
+output: html_document
+---
+
+## Introduction
+
+Customer profiling for target marketing is an important area for potential application for data mining techniques. In this analysis we derive a typical profile of customers holding Caravan Insurance Policy. Such a profile would help identify customers with a similar profile who do not have caravan policies to both existing nonholders of caravan policies or new customers with similar profiles.
+
+```{r}
+library(sqldf)
+setwd("/tmp/working/kaggle/rstats/mds564")
+dataset1 <- read.csv("ticdata2000.txt", sep = "\t", header = FALSE)
+summary(dataset1)
+str(dataset1)
+d1 <- cor(dataset1[1:85],dataset1[86], method="spearman")
+
+```
+
+
+
+An initial review of the data revealed that for the religion parameters those customers who are Roman Catholic are further subdivided into 10 different levels with a range of percentage values (see Table Main Table and Sub Table L3 in Appendix A highlighted in grey). Despite various attempts to get more information about what such percentage value actually represents for a parameter that normally would have a simple binary value—that is, either someone is a Roman Catholic or not—we were unable to come up with a credible explanation. Given this lack of clarity, it was decided to exclude all four religion-related parameters (i.e., MGODRK—Roman Catholic; MGODPR—Protestant; MGODOV—Other religion; MGODGE—No religion) from further analysis presented here.
+The correlations between customers’ religion and holding of Caravan Insurance is also not very significant. Hence, on the basis of this all four religion parameters have been excluded from further analysis presented here. 
+
+
+```{r}
+cname <- c('mostype', 'maanthui', 'mgemomv', 'mgemleef', 'moshoofd', 'mgodrk', 'mgodpr', 'mgodov', 'mgodge', 'mrelge', 'mrelsa', 'mrelov', 'mfalleen', 'mfgekind', 'mfwekind', 'moplhoog', 'moplmidd', 'mopllaag', 'mberhoog', 'mberzelf', 'mberboer', 'mbermidd', 'mberarbg', 'mberarbo', 'mska', 'mskb1', 'mskb2', 'mskc', 'mskd', 'mhhuur', 'mhkoop', 'maut1', 'maut2', 'maut0', 'mzfonds', 'mzpart', 'minkm30', 'mink3045', 'mink4575', 'mink7512', 'mink123m', 'minkgem', 'mkoopkla', 'pwapart', 'pwabedr', 'pwaland', 'ppersaut', 'pbesaut', 'pmotsco', 'pvraaut', 'paanhang', 'ptractor', 'pwerkt', 'pbrom', 'pleven', 'ppersong', 'pgezong', 'pwaoreg', 'pbrand', 'pzeilpl', 'pplezier', 'pfiets', 'pinboed', 'pbystand', 'awapart', 'awabedr', 'awaland', 'apersaut', 'abesaut', 'amotsco', 'avraaut', 'aaanhang', 'atractor', 'awerkt', 'abrom', 'aleven', 'apersong', 'agezong', 'awaoreg', 'abrand', 'azeilpl', 'aplezier', 'afiets', 'ainboed', 'abystand', 'caravan')
+
+colnames(dataset1) <- cname
+head(dataset1)
+dataset2 <- dataset1[-c(6,7,8,9)]
+dim(dataset2)
+```
+
+The remaining 4 categorical variables are :
+    mostype(41), mgemleef(6), moshoofd(10), pwapart(10) 
+    
+    
+```{r}
+sqldf("select mostype, mgemleef, moshoofd, pwapart from dataset1 limit 10")
+
+```
+    
+
+```{r}
+dataset2 <- dataset1
+### process categorical variable 1 - mostype
+mostype_list <- sort(unique(dataset2$mostype))
+for (i in mostype_list){
+  dataset2[paste("mostype_", i, sep="")] <- ifelse(dataset2$mostype==i, 1, 0)
+}
+dataset2$mostype <- NULL
+print(length(colnames(dataset2)))
+sqldf("select mostype_1, mostype_2, mostype_3 from dataset2 limit 10 ")
+
+### process categorical variable 2 - mgemleef
+mgemleef_list <- sort(unique(dataset2$mgemleef))
+for (i in mgemleef_list){
+  dataset2[paste("mgemleef_", i, sep="")] <- ifelse(dataset2$mgemleef==i, 1, 0)
+}
+dataset2$mgemleef <- NULL
+print(length(colnames(dataset2)))
+sqldf("select mgemleef_1, mgemleef_2, mgemleef_3 from dataset2 limit 10 ")
+colnames(dataset2)
+
+### process categorical variable 3 - moshoofd
+moshoofd_list <- sort(unique(dataset2$moshoofd))
+for (i in moshoofd_list){
+  dataset2[paste("moshoofd_", i, sep="")] <- ifelse(dataset2$moshoofd==i, 1, 0)
+}
+dataset2$moshoofd <- NULL
+print(length(colnames(dataset2)))
+sqldf("select moshoofd_1, moshoofd_2, moshoofd_3 from dataset2 limit 10 ")
+colnames(dataset2)
+
+### process categorical variable 4 - pwapart
+pwapart_list <- sort(unique(dataset2$pwapart))
+for (i in pwapart_list){
+  dataset2[paste("pwapart_", i, sep="")] <- ifelse(dataset2$pwapart==i, 1, 0)
+}
+dataset2$pwapart <- NULL
+print(length(colnames(dataset2)))
+sqldf("select pwapart_1, pwapart_2, pwapart_3 from dataset2 limit 10 ")
+colnames(dataset2)
+
+# Create multiple column format from MOSTYPE column
+# mostype_matrix <- model.matrix(~MOSTYPE, dataset3)
+# rm(dataset3)
+dataset2$pwapart_4 <- 0
+dataset2$pwapart_5 <- 0
+dataset2$pwapart_6 <- 0
+
+dim(dataset2)
+
+```
+
+
+## Variable correlation and logistic regression analysis
+
+```{r}
+
+# install.packages("Hmisc")
+library(Hmisc)
+describe(dataset2)
+
+```
+
+
+
+
+
+
