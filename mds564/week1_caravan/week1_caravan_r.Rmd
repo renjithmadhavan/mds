@@ -107,6 +107,37 @@ describe(dataset2)
 
 ```
 
+Step 5
+
+
+To see if there is any strong relationship between customer parameters and caravan.
+The results did not elicit any strong link between Caravan Insurance holding and any other specific variable as can be seen from the plot below. Though the variables in this list are of some interest, the correlation between each pair is unlikely to be statistically significant. Overall, the results also confirmed the relatively low number of Caravan Insurance Policy holders in the database 
+
+```{r}
+prop1 <- prop.table(table(dataset1$mostype, dataset1$caravan), 1)
+barplot(prop1[,2], xlab = "Customer Sub Type", ylab = "Proportion Of Caravan")
+```
+
+
+
+```{r}
+library(caret)
+colnames(dataset2)
+model <- glm(caravan ~ ., data=dataset2)
+summary(model)
+plot(model)
+model$coefficients
+lr <- varImp(model, scale = FALSE)
+lr
+v1 <- rownames(lr)
+v2 <- lr$Overall
+v3 <- cbind("field"=v1, "value"=v2)
+v4 <- as.data.frame(v3)
+v4$new <- round(as.numeric(v4$value, -2))
+head(v4)
+```
+
+
 
 
 
