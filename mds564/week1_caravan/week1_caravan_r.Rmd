@@ -11,8 +11,10 @@ Customer profiling for target marketing is an important area for potential appli
 
 ```{r}
 library(sqldf)
-setwd("/tmp/working/kaggle/rstats/mds564")
+#setwd("/tmp/working/kaggle/rstats/mds564")
 dataset1 <- read.csv("ticdata2000.txt", sep = "\t", header = FALSE)
+test <- read.csv("ticeval2000.txt", sep = "\t", header = FALSE)
+actuals <- read.csv("tictgts2000.txt", sep = "\t", header = FALSE)
 summary(dataset1)
 str(dataset1)
 d1 <- cor(dataset1[1:85],dataset1[86], method="spearman")
@@ -29,9 +31,13 @@ The correlations between customers’ religion and holding of Caravan Insurance 
 cname <- c('mostype', 'maanthui', 'mgemomv', 'mgemleef', 'moshoofd', 'mgodrk', 'mgodpr', 'mgodov', 'mgodge', 'mrelge', 'mrelsa', 'mrelov', 'mfalleen', 'mfgekind', 'mfwekind', 'moplhoog', 'moplmidd', 'mopllaag', 'mberhoog', 'mberzelf', 'mberboer', 'mbermidd', 'mberarbg', 'mberarbo', 'mska', 'mskb1', 'mskb2', 'mskc', 'mskd', 'mhhuur', 'mhkoop', 'maut1', 'maut2', 'maut0', 'mzfonds', 'mzpart', 'minkm30', 'mink3045', 'mink4575', 'mink7512', 'mink123m', 'minkgem', 'mkoopkla', 'pwapart', 'pwabedr', 'pwaland', 'ppersaut', 'pbesaut', 'pmotsco', 'pvraaut', 'paanhang', 'ptractor', 'pwerkt', 'pbrom', 'pleven', 'ppersong', 'pgezong', 'pwaoreg', 'pbrand', 'pzeilpl', 'pplezier', 'pfiets', 'pinboed', 'pbystand', 'awapart', 'awabedr', 'awaland', 'apersaut', 'abesaut', 'amotsco', 'avraaut', 'aaanhang', 'atractor', 'awerkt', 'abrom', 'aleven', 'apersong', 'agezong', 'awaoreg', 'abrand', 'azeilpl', 'aplezier', 'afiets', 'ainboed', 'abystand', 'caravan')
 
 colnames(dataset1) <- cname
+colnames(test) <- cname[1:85]
 head(dataset1)
 dataset2 <- dataset1[-c(6,7,8,9)]
+test <- test[-c(6,7,8,9)]
 dim(dataset2)
+dim(test)
+# sapply(test,function(x)any(is.na(x)))
 ```
 
 The remaining 4 categorical variables are :
@@ -45,7 +51,7 @@ sqldf("select mostype, mgemleef, moshoofd, pwapart from dataset1 limit 10")
     
 
 ```{r}
-dataset2 <- dataset1
+#dataset2 <- dataset1
 ### process categorical variable 1 - mostype
 mostype_list <- sort(unique(dataset2$mostype))
 for (i in mostype_list){
@@ -53,7 +59,7 @@ for (i in mostype_list){
 }
 dataset2$mostype <- NULL
 print(length(colnames(dataset2)))
-sqldf("select mostype_1, mostype_2, mostype_3 from dataset2 limit 10 ")
+#sqldf("select mostype_1, mostype_2, mostype_3 from dataset2 limit 10 ")
 
 ### process categorical variable 2 - mgemleef
 mgemleef_list <- sort(unique(dataset2$mgemleef))
@@ -62,7 +68,7 @@ for (i in mgemleef_list){
 }
 dataset2$mgemleef <- NULL
 print(length(colnames(dataset2)))
-sqldf("select mgemleef_1, mgemleef_2, mgemleef_3 from dataset2 limit 10 ")
+#sqldf("select mgemleef_1, mgemleef_2, mgemleef_3 from dataset2 limit 10 ")
 colnames(dataset2)
 
 ### process categorical variable 3 - moshoofd
@@ -72,7 +78,7 @@ for (i in moshoofd_list){
 }
 dataset2$moshoofd <- NULL
 print(length(colnames(dataset2)))
-sqldf("select moshoofd_1, moshoofd_2, moshoofd_3 from dataset2 limit 10 ")
+#sqldf("select moshoofd_1, moshoofd_2, moshoofd_3 from dataset2 limit 10 ")
 colnames(dataset2)
 
 ### process categorical variable 4 - pwapart
@@ -82,7 +88,7 @@ for (i in pwapart_list){
 }
 dataset2$pwapart <- NULL
 print(length(colnames(dataset2)))
-sqldf("select pwapart_1, pwapart_2, pwapart_3 from dataset2 limit 10 ")
+#sqldf("select pwapart_1, pwapart_2, pwapart_3 from dataset2 limit 10 ")
 colnames(dataset2)
 
 # Create multiple column format from MOSTYPE column
@@ -94,6 +100,38 @@ dataset2$pwapart_6 <- 0
 
 dim(dataset2)
 
+
+
+### processing test data set
+### process categorical variable 1 - mostype
+for (i in mostype_list){
+  test[paste("mostype_", i, sep="")] <- ifelse(test$mostype==i, 1, 0)
+}
+test$mostype <- NULL
+
+### process categorical variable 2 - mgemleef
+for (i in mgemleef_list){
+  test[paste("mgemleef_", i, sep="")] <- ifelse(test$mgemleef==i, 1, 0)
+}
+test$mgemleef <- NULL
+
+### process categorical variable 3 - moshoofd
+for (i in moshoofd_list){
+  test[paste("moshoofd_", i, sep="")] <- ifelse(test$moshoofd==i, 1, 0)
+}
+test$moshoofd <- NULL
+
+### process categorical variable 4 - pwapart
+for (i in pwapart_list){
+  test[paste("pwapart_", i, sep="")] <- ifelse(test$pwapart==i, 1, 0)
+}
+test$pwapart <- NULL
+
+test$pwapart_4 <- 0
+test$pwapart_5 <- 0
+test$pwapart_6 <- 0
+
+dim(test)
 ```
 
 
@@ -116,6 +154,9 @@ The results did not elicit any strong link between Caravan Insurance holding and
 ```{r}
 prop1 <- prop.table(table(dataset1$mostype, dataset1$caravan), 1)
 barplot(prop1[,2], xlab = "Customer Sub Type", ylab = "Proportion Of Caravan")
+library(gmodels)
+CrossTable(dataset2$caravan)
+## The dataset is heavily unbalanced
 ```
 
 
@@ -123,21 +164,137 @@ barplot(prop1[,2], xlab = "Customer Sub Type", ylab = "Proportion Of Caravan")
 ```{r}
 library(caret)
 colnames(dataset2)
-model <- glm(caravan ~ ., data=dataset2)
+model <- glm(caravan ~ ., data=dataset2, na.action = na.exclude)
 summary(model)
-plot(model)
-model$coefficients
-lr <- varImp(model, scale = FALSE)
-lr
-v1 <- rownames(lr)
-v2 <- lr$Overall
-v3 <- cbind("field"=v1, "value"=v2)
-v4 <- as.data.frame(v3)
-v4$new <- round(as.numeric(v4$value, -2))
-head(v4)
+##  varImp(model)
+# Variable importance plot is not working for some reason
+
+
+
+
 ```
 
 
+## RP Model
+
+
+```{r}
+summary(dataset2)
+#find out if there is any NA's
+sapply(dataset2,function(x)any(is.na(x)))
+# so there is no NA in any column
+
+```
+
+```{r}
+###  Continuing with the RP model analysis
+library(rpart)
+tree_model <- rpart(caravan ~ ., method = "class", data = dataset2, control = rpart.control(cp = 0.001))
+summary(tree_model)
+plot(tree_model, uniform = TRUE)
+text(tree_model)
+```
+
+
+```{r}
+### I am trying to prune the tree above
+plotcp(tree_model)
+printcp(tree_model)
+
+```
+
+```{r}
+## ## some cleanup
+## rm(cname)
+## rm(i)
+## rm(mgemleef_list)
+## rm(moshoofd_list)
+## rm(mostype_list)
+## rm(pwapart_list)
+## rm(dataset1)
+
+```
+
+
+```{r}
+
+## We have a really unablanced training data set.
+## So I am adjusting prior probabilities to get around this
+library(rpart)
+library(rpart.plot)
+library(caret)
+tree_model_prior <- rpart(caravan ~ ., method = "class", data = dataset2, parms = list(prior=c(0.8, 0.2)), control = rpart.control(cp = 0.001))
+summary(tree_model_prior)
+plot(tree_model_prior, uniform = TRUE)
+text(tree_model_prior)
+plotcp(tree_model_prior)
+printcp(tree_model_prior)
+index <- which.min(tree_model_prior$cptable[ , "xerror"])
+tree_min <- tree_model_prior$cptable[index, "CP"]
+pruned_tree <- prune(tree_model_prior, cp = tree_min)
+prp(pruned_tree)
+summary(pruned_tree)
+print(as.data.frame(pruned_tree$variable.importance))
+```
+
+From above pruned tree I checked the variable importance and below is in order.
+PPERSAUT Contribution car policies
+APERSAUT Number of car policies
+PBRAND Contribution fire policies
+ABRAND Number of fire policies
+MOPLLAAG Lower level education
+AWAPART Number of private third party insurance 1 - 12
+APLEZIER Number of boat policies
+PPLEZIER Contribution boat policies
+MOPLHOOG High level education
+MSKC Social class C
+MOPLMIDD Medium level education
+MSKA Social class A
+MBERHOOG High status
+MINKGEM Average income
+MHHUUR Rented house
+MINKM30 Income < 30.000
+MRELGE Married
+MFALLEEN Singles
+ATRACTOR Number of tractor policies
+PTRACTOR Contribution tractor policies
+PBYSTAND Contribution social security insurance policies
+MRELOV Other relation
+MINK4575 Income 45-75.000
+MHKOOP Home owners
+
+
+```{r}
+predict_tree_prior <- predict(pruned_tree, newdata = test, type = "class")
+# the actual values are stored in vector actuals
+
+# constructing confusion matix
+actuals <- unlist(actuals)
+actuals <- as.factor(actuals)
+conf_predict_tree_prior <- table(actuals, predict_tree_prior)
+print(conf_predict_tree_prior)
+
+#calculating accuracy 
+
+accuracy_tree_prior <- sum(diag(conf_predict_tree_prior)) / nrow(test)
+
+```
+
+Plotting ROC curves
+
+```{r}
+library(pROC)
+
+
+## prepare the objects for ROC
+# roc arguments need to be converted to numeric
+roc_tree_prior <- roc(as.numeric(actuals), as.numeric(predict_tree_prior))
+auc_1 <- auc(roc_tree_prior)
+plot(roc_tree_prior)
+print(auc(roc_tree_prior))
+
+
+```
 
 
 
