@@ -247,11 +247,8 @@ text(mp, par("usr")[3], labels = labels, srt = 90, adj = c(1.1,.5), xpd = TRUE, 
 From above pruned tree I checked the variable importance and below is in order.
 
 1. PPERSAUT Contribution car policies
-
 2. APERSAUT Number of car policies
-
 3. PBRAND Contribution fire policies
-
 4. ABRAND Number of fire policies
 5. MOPLLAAG Lower level education
 6. AWAPART Number of private third party insurance 1 - 12
