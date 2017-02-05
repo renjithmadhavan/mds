@@ -245,30 +245,30 @@ text(mp, par("usr")[3], labels = labels, srt = 90, adj = c(1.1,.5), xpd = TRUE, 
 ```
 
 From above pruned tree I checked the variable importance and below is in order.
-PPERSAUT Contribution car policies
-APERSAUT Number of car policies
-PBRAND Contribution fire policies
-ABRAND Number of fire policies
-MOPLLAAG Lower level education
-AWAPART Number of private third party insurance 1 - 12
-APLEZIER Number of boat policies
-PPLEZIER Contribution boat policies
-MOPLHOOG High level education
-MSKC Social class C
-MOPLMIDD Medium level education
-MSKA Social class A
-MBERHOOG High status
-MINKGEM Average income
-MHHUUR Rented house
-MINKM30 Income < 30.000
-MRELGE Married
-MFALLEEN Singles
-ATRACTOR Number of tractor policies
-PTRACTOR Contribution tractor policies
-PBYSTAND Contribution social security insurance policies
-MRELOV Other relation
-MINK4575 Income 45-75.000
-MHKOOP Home owners
+1. PPERSAUT Contribution car policies
+2. APERSAUT Number of car policies
+3. PBRAND Contribution fire policies
+4. ABRAND Number of fire policies
+5. MOPLLAAG Lower level education
+6. AWAPART Number of private third party insurance 1 - 12
+. APLEZIER Number of boat policies
+. PPLEZIER Contribution boat policies
+. MOPLHOOG High level education
+. MSKC Social class C
+. MOPLMIDD Medium level education
+. MSKA Social class A
+. MBERHOOG High status
+. MINKGEM Average income
+. MHHUUR Rented house
+. MINKM30 Income < 30.000
+. MRELGE Married
+. MFALLEEN Singles
+. ATRACTOR Number of tractor policies
+. PTRACTOR Contribution tractor policies
+. PBYSTAND Contribution social security insurance policies
+. MRELOV Other relation
+. MINK4575 Income 45-75.000
+. MHKOOP Home owners
 
 
 ```{r}
