@@ -252,25 +252,24 @@ From above pruned tree I checked the variable importance and below is in order.
 4. ABRAND Number of fire policies
 5. MOPLLAAG Lower level education
 6. AWAPART Number of private third party insurance 1 - 12
-. APLEZIER Number of boat policies
-. PPLEZIER Contribution boat policies
-. MOPLHOOG High level education
-. MSKC Social class C
-. MOPLMIDD Medium level education
-. MSKA Social class A
-. MBERHOOG High status
-. MINKGEM Average income
-. MHHUUR Rented house
-. MINKM30 Income < 30.000
-. MRELGE Married
-. MFALLEEN Singles
-. ATRACTOR Number of tractor policies
-. PTRACTOR Contribution tractor policies
-. PBYSTAND Contribution social security insurance policies
-. MRELOV Other relation
-. MINK4575 Income 45-75.000
-. MHKOOP Home owners
-
+7. APLEZIER Number of boat policies
+8. PPLEZIER Contribution boat policies
+9. MOPLHOOG High level education
+10. MSKC Social class C
+11. MOPLMIDD Medium level education
+12. MSKA Social class A
+13. MBERHOOG High status
+14. MINKGEM Average income
+15. MHHUUR Rented house
+16. MINKM30 Income < 30.000
+17. MRELGE Married
+18. MFALLEEN Singles
+19. ATRACTOR Number of tractor policies
+20. PTRACTOR Contribution tractor policies
+21. PBYSTAND Contribution social security insurance policies
+22. MRELOV Other relation
+23. MINK4575 Income 45-75.000
+24. MHKOOP Home owners
 
 ```{r}
 
