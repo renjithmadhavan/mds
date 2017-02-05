@@ -235,6 +235,13 @@ pruned_tree <- prune(tree_model_prior, cp = tree_min)
 prp(pruned_tree)
 summary(pruned_tree)
 print(as.data.frame(pruned_tree$variable.importance))
+barplot(pruned_tree$variable.importance)
+
+labels <- names(pruned_tree$variable.importance)
+mp <- barplot(pruned_tree$variable.importance, axes = TRUE, axisnames = FALSE)
+text(mp, par("usr")[3], labels = labels, srt = 90, adj = c(1.1,.5), xpd = TRUE, cex=.9)
+#axis(2)
+
 ```
 
 From above pruned tree I checked the variable importance and below is in order.
@@ -265,6 +272,7 @@ MHKOOP Home owners
 
 
 ```{r}
+
 predict_tree_prior <- predict(pruned_tree, newdata = test, type = "class")
 # the actual values are stored in vector actuals
 
@@ -277,6 +285,7 @@ print(conf_predict_tree_prior)
 #calculating accuracy 
 
 accuracy_tree_prior <- sum(diag(conf_predict_tree_prior)) / nrow(test)
+print(accuracy_tree_prior)
 
 ```
 
@@ -293,8 +302,212 @@ auc_1 <- auc(roc_tree_prior)
 plot(roc_tree_prior)
 print(auc(roc_tree_prior))
 
+# print confusion matrix details using caret
+print(confusionMatrix(as.numeric(actuals), as.numeric(predict_tree_prior)))
 
 ```
+
+
+### Bagging Ensemble
+
+Briefly, it works by splitting the data into multiple (training) data sets to which a class of learning or optimizing methods—that is decision trees and neural networks—is applied. The method is training multiple (k) models on different sets and then averaging the predictions of each model, hence bagging. The goal is to develop a model that optimizes the accuracy of one model. The rationale is that averaging of misclassification errors on different data splits gives a better estimate of the predictive ability of a learning method. 
+
+
+```{r}
+library(ipred)
+cust.ip <- bagging(caravan ~ ., data=dataset2, coob=TRUE)
+## cust.ip.prob <- predict(cust.ip, type="prob", newdata = test)
+## using class type for class prediction
+#cust.ip.c <- predict(cust.ip, type="prob", newdata = test)
+## I had to change the target varaible to factor to get this working for classification
+
+class(dataset2$caravan)
+dataset2$caravan <- as.factor(dataset2$caravan)
+
+cust.ip.cl <- predict(cust.ip, type="class", newdata = test)
+head(cust.ip.cl)
+# str(dataset2)
+## sapply(test,function(x)any(!is.numeric(x)))
+
+conf_bagging <- table(actuals, cust.ip.cl)
+print(conf_bagging)
+
+#calculating accuracy 
+
+accuracy_bagging <- sum(diag(conf_bagging)) / nrow(test)
+print(accuracy_bagging)
+
+roc_bagging <- roc(as.numeric(actuals), as.numeric(cust.ip.cl))
+auc_2 <- auc(roc_bagging)
+plot(roc_bagging)
+print(auc_2)
+
+# print confusion matrix details using caret
+print(confusionMatrix(as.numeric(actuals), as.numeric(cust.ip.cl)))
+t1 <- varImp(cust.ip)
+dim(t1)
+t1$imp1 <- rownames(t1)
+t2 <- sqldf("select imp1, Overall from t1 order by 2 desc limit 15")
+t2
+str(t2)
+plot(as.factor(t2$imp1), t2$Overall)
+```
+
+
+### Support Vector Machine
+
+Package e1071 can be used to implement svm
+
+```{r}
+library(e1071)
+## below code is from text book
+
+cust.svm <- svm(caravan ~ ., data=dataset2, method="C-classification", kernel="radial", cost=10, gamma=0.1,
+                cross=0, fitted=TRUE, probability=TRUE)
+summary(cust.svm)
+cust.svm.predict <- predict(cust.svm, newdata=test)
+
+## confusion matrix
+conf_svm <- table(actuals, cust.svm.predict)
+print(conf_svm)
+
+#calculating accuracy 
+
+accuracy_svm <- sum(diag(conf_svm)) / nrow(test)
+print(accuracy_svm)
+
+roc_svm <- roc(as.numeric(actuals), as.numeric(cust.svm.predict))
+auc_3 <- auc(roc_svm)
+plot(roc_svm)
+print(auc_3)
+
+# print confusion matrix details using caret
+print(confusionMatrix(as.numeric(actuals), as.numeric(cust.svm.predict)))
+
+```
+
+Tune svm to find the cost and gamma values.
+
+```{r}
+# dataset3 <- dataset2
+# dataset3$caravan <- NULL
+# svm_tune <- tune(svm, train.x=dataset3, train.y=dataset2$caravan, 
+#               kernel="radial", ranges=list(cost=10^(-1:2), gamma=c(.5,1,2)))
+# 
+# print(svm_tune)
+
+```
+
+
+
+### LR Method
+
+
+```{r}
+cust.logit <- glm(caravan ~ ., data=dataset2, family=binomial(link="logit"))
+summary(cust.logit)
+cust.var.imp <- varImp(cust.logit, useModel=glm)
+head(cust.var.imp)
+```
+
+
+```{r}
+cust.logit.pred <- predict(cust.logit, newdata=test, type="response")
+head(cust.logit.pred)
+```
+
+
+
+Another try ..........
+
+
+```{r}
+t1 <- pruned_tree$variable.importance
+t2 <- names(t1)
+y <- "caravan"
+x <- paste(t2, collapse=" + ")
+fmla <- paste(y, paste(x, collapse="+"), sep=" ~ ")
+dataset2$caravan <- as.factor(dataset2$caravan)
+fmla
+cust_logit_2 <- glm(fmla, data=dataset2, family=binomial(link = "logit"))
+summary(cust_logit_2)
+cust_logit_2_pred <- predict(cust_logit_2, newdata=test, type = "response")
+head(cust_logit_2_pred)
+### its giving me probabilties instead of class predictions.SO
+## I will use cut-off manually
+
+summary(cust_logit_2_pred)
+cust_logit_cutoff <- ifelse(cust_logit_2_pred > 0.2, 1, 0)
+head(cust_logit_cutoff)
+## confusion matrix
+conf_logit <- table(actuals, cust_logit_cutoff)
+print(conf_logit)
+
+#calculating accuracy 
+
+accuracy_logit <- sum(diag(conf_logit)) / nrow(test)
+print(accuracy_logit)
+
+roc_logit <- roc(as.numeric(actuals), as.numeric(cust_logit_cutoff))
+auc_4 <- auc(roc_logit)
+plot(roc_logit)
+print(auc_4)
+
+# print confusion matrix details using caret
+## note the use of argument, always specify "positive" to avoid confusion
+print(confusionMatrix(as.factor(actuals), as.factor(cust_logit_cutoff), positive = "1"))
+print(confusionMatrix(as.factor(actuals), as.factor(cust_logit_cutoff)))
+```
+
+### Plot the ROC Curve
+
+
+```{r}
+roc_tree_prior_roc <- prediction(as.numeric(predict_tree_prior), as.numeric(actuals))
+roc_rp <- performance(roc_tree_prior_roc, "tpr", "fpr")
+
+roc_bagging_roc <- prediction(as.numeric(cust.ip.cl), as.numeric(actuals))
+roc_be <- performance(roc_bagging_roc, "tpr", "fpr")
+
+roc_svm_roc <- prediction(as.numeric(cust.svm.predict), as.numeric(actuals))
+roc_svm <- performance(roc_svm_roc, "tpr", "fpr")
+
+roc_logit_roc <- prediction(as.numeric(cust_logit_cutoff), as.numeric(actuals))
+roc_logit <- performance(roc_logit_roc, "tpr", "fpr")
+
+# draw the ROC-curves in a single plot
+
+# plot(roc_rp)
+# lines(roc_be, col = "blue")
+# lines(roc_svm, col = "red")
+# lines(roc_logit, col = "green")
+
+
+#ppi <- 300
+#png(filename = "Accuracy versus Cut-off curve without religion variables.png", width=6*ppi, height=6*ppi, res=ppi)
+plot(roc_rp, col=2, main="Accuracy versus Cut-off curve without religion variables")
+legend(0.5,0.5, c('rpart','bagging','svm', 'logistic'), 2:5)
+plot(roc_be, col=3, add=TRUE)
+plot(roc_svm, col=4, add=TRUE)
+plot(roc_logit, col=5, add=TRUE)
+#dev.off()
+
+
+library(ROCR)
+cust.rp.prob.pred <- prediction(as.numeric(predict_tree_prior), as.numeric(actuals))
+customer.rp.perf <- performance(cust.rp.prob.pred, "tpr", "fpr")
+plot(customer.rp.perf, main="ROC Curve using recursive partitioning", colrize=T)
+```
+
+
+
+
+
+
+
+
+
+
 
 
 
